@@ -1,0 +1,3 @@
+package: github.com/mlen/ussd
+import:
+- package: github.com/google/gofuzz

@@ -1,0 +1,6 @@
+hash: cf43c5275bc4c5ff67fb4bf2f00cd237ce0e3ad7b0dd739dd0ad867bd8620965
+updated: 2017-04-10T17:41:23.085353909+02:00
+imports:
+- name: github.com/google/gofuzz
+  version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
+testImports: []
