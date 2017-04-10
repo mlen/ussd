@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/mlen/ussd/pack"
+	"github.com/tarm/serial"
 
 	"bufio"
 	"context"
@@ -9,12 +10,12 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 )
 
 var (
 	port = flag.String("port", "/dev/ttyUSB0", "serial port to open")
+	baud = flag.Int("baud", 9600, "baud rate")
 )
 
 type Mode int
@@ -25,12 +26,13 @@ const (
 	Cancel
 )
 
-func mustOpenPort(port string) io.ReadWriteCloser {
-	f, err := os.Open(port)
+func mustOpenPort(port string, baud int) io.ReadWriteCloser {
+	c := &serial.Config{Name: port, Baud: baud}
+	p, err := serial.OpenPort(c)
 	if err != nil {
 		panic(err)
 	}
-	return f
+	return p
 }
 
 func sendCusd(port io.Writer, mode Mode, msg string) error {
@@ -90,7 +92,7 @@ func printResponse(line string) {
 func main() {
 	flag.Parse()
 
-	r := mustOpenPort(*port)
+	r := mustOpenPort(*port, *baud)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	lines := make(chan string)
