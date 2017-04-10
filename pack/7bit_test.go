@@ -76,7 +76,7 @@ func TestUnpack7Bit(t *testing.T) {
 	}
 }
 
-func TestFuzzPackUnpack(t *testing.T) {
+func TestFuzz(t *testing.T) {
 	var instance []byte
 	f := fuzz.New().NumElements(10, 30).Funcs(
 		func(b *byte, c fuzz.Continue) {
@@ -85,8 +85,13 @@ func TestFuzzPackUnpack(t *testing.T) {
 		},
 	)
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1000; i++ {
 		f.Fuzz(&instance)
+
+		// instances with null byte at the end are invalid
+		if len(instance) != 0 && instance[len(instance)-1] == 0 {
+			instance = instance[:len(instance)-1]
+		}
 
 		result := Unpack7Bit(Pack7Bit(instance))
 		if !bytes.Equal(result, instance) {

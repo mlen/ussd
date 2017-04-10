@@ -42,33 +42,33 @@ func Unpack7Bit(data []byte) []byte {
 		return []byte{}
 	}
 
-	// length of the output sequence
-	// 7 bit encoding packs 8 characters in 7 bytes
-	// we need to calculate the output size based on that
-	length := (uint(len(data)) * 8) / 7
-
-	result := make([]byte, 0, length)
-
-	// first iteration is straightforward, hardcode it
-	result = append(result, data[0]&0x7f)
-	for i := uint(1); i < length; i++ {
-		// during each cycle 8 characters are generated
-		// after each cycle, we need to go back 1 character in the input sequence
-		// because it still contains data for the next cycle
-		cycle := i / 8
-
+	result := make([]byte, 0, 2*len(data))
+	for i := uint(0); i < uint(len(data)); i++ {
 		// number of bits to extract for low and high part of character
-		bits_lo := i % 8
+		bits_lo := i % 7
 		bits_hi := 7 - bits_lo
 
 		mask_lo := byte(0xff) >> (8 - bits_lo)
 		mask_hi := byte(0xff) >> (8 - bits_hi)
 
-		low := (data[i-cycle-1] >> (8 - bits_lo)) & mask_lo
-		high := ((data[i-cycle] & mask_hi) << bits_lo) // FIXME there is a bug
+		high := (data[i] & mask_hi) << bits_lo
 
-		result = append(result, high|low)
+		if bits_lo == 0 {
+			result = append(result, high)
+		} else {
+			low := (data[i-1] >> (8 - bits_lo)) & mask_lo
+			result = append(result, high|low)
+		}
+
+		if bits_lo == 6 {
+			low := data[i] >> 1
+			result = append(result, low)
+		}
 	}
 
-	return result
+	if result[len(result)-1] == 0 {
+		return result[:len(result)-1]
+	} else {
+		return result
+	}
 }
