@@ -4,6 +4,8 @@ import (
 	"github.com/mlen/ussd/pack"
 	"github.com/tarm/serial"
 
+	"net"
+
 	"bufio"
 	"context"
 	"encoding/hex"
@@ -33,6 +35,14 @@ func mustOpenPort(port string, baud int) io.ReadWriteCloser {
 		panic(err)
 	}
 	return p
+}
+
+func mustConnect(port string) io.ReadWriteCloser {
+	c, err := net.Dial("tcp", port)
+	if err != nil {
+		panic(err)
+	}
+	return c
 }
 
 func sendCusd(port io.Writer, mode Mode, msg string) error {
@@ -92,7 +102,12 @@ func printResponse(line string) {
 func main() {
 	flag.Parse()
 
-	r := mustOpenPort(*port, *baud)
+	var r io.ReadWriteCloser
+	if strings.HasPrefix(*port, "/") {
+		r = mustOpenPort(*port, *baud)
+	} else {
+		r = mustConnect(*port)
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	lines := make(chan string)
